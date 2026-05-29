@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Qeja - Home</title>
 <link rel="stylesheet" href="style.css">
+
 <style>
 body{padding-bottom:80px;background:#f4f4f4;}
 .top-appbar{background:#111;color:white;padding:18px 7%;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
@@ -19,8 +20,7 @@ body{padding-bottom:80px;background:#f4f4f4;}
 .dark-btn{background:#111;color:white;}
 .danger-btn{background:#cc0000;color:white;}
 .comment-box{display:none;margin-top:15px;}
-.comment-item,.reply-item{background:#f3f3f3;padding:10px;border-radius:10px;margin-top:10px;}
-.reply-item{margin-left:25px;background:#fafafa;}
+.comment-item{background:#f3f3f3;padding:10px;border-radius:10px;margin-top:10px;}
 .comment-input{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;margin:8px 0;}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;height:70px;display:flex;justify-content:space-around;align-items:center;z-index:200;}
 .bottom-nav a{text-decoration:none;color:#555;font-size:13px;font-weight:bold;text-align:center;}
@@ -29,6 +29,7 @@ body{padding-bottom:80px;background:#f4f4f4;}
 .post-plus span{font-size:34px;}
 </style>
 </head>
+
 <body>
 
 <header class="top-appbar">
@@ -57,6 +58,7 @@ import { ref, onValue, update, push, set, get, remove } from "https://www.gstati
 
 let currentUser = null;
 let currentUserData = null;
+const EDIT_LIMIT = 20 * 60 * 1000;
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -75,6 +77,11 @@ onAuthStateChanged(auth, async (user) => {
     loadPosts();
 });
 
+function isWithin20Minutes(item) {
+    if (!item.createdAt) return false;
+    return Date.now() - new Date(item.createdAt).getTime() <= EDIT_LIMIT;
+}
+
 function loadPosts() {
     const feed = document.getElementById("feedContainer");
 
@@ -82,7 +89,14 @@ function loadPosts() {
         feed.innerHTML = "";
 
         if (!snapshot.exists()) {
-            feed.innerHTML = "<div class='post-card'><div class='post-body'><h3>No posts yet</h3><p>Tap + to create your first property post.</p></div></div>";
+            feed.innerHTML = `
+                <div class="post-card">
+                    <div class="post-body">
+                        <h3>No posts yet</h3>
+                        <p>Tap + to create your first property post.</p>
+                    </div>
+                </div>
+            `;
             return;
         }
 
@@ -108,19 +122,18 @@ function loadPosts() {
 
                     <p>
                         👁 ${post.views || 0} views &nbsp;
-                        ❤️ ${post.likesCount || post.likes || 0} likes &nbsp;
-                        💬 comments
+                        ❤️ ${post.likesCount || post.likes || 0} likes
                     </p>
 
                     <div class="post-actions">
                         <button class="orange-btn" onclick="togglePostLike('${post.postId}')">❤️ Like</button>
-                        <button class="dark-btn" onclick="toggleComments('${post.postId}')">💬 Comment</button>
+                        <button class="dark-btn" onclick="openComments('${post.postId}', '${post.ownerId}')">💬 Comment</button>
                         <button class="dark-btn" onclick="sendInquiry('${post.postId}', '${post.ownerId}')">📩 Inquiry</button>
                     </div>
 
                     <div id="comments-${post.postId}" class="comment-box">
                         <input id="commentInput-${post.postId}" class="comment-input" placeholder="Write a public comment...">
-                        <button class="orange-btn small-btn" onclick="addComment('${post.postId}')">Post Comment</button>
+                        <button class="orange-btn small-btn" onclick="addRootComment('${post.postId}')">Post Comment</button>
                         <div id="commentList-${post.postId}"></div>
                     </div>
                 </div>
@@ -141,76 +154,26 @@ window.togglePostLike = async function(postId) {
 
     if (likeSnap.exists()) {
         await remove(likeRef);
-        await update(postRef, { likesCount: Math.max(0, currentLikes - 1), likes: Math.max(0, currentLikes - 1) });
+        await update(postRef, {
+            likesCount: Math.max(0, currentLikes - 1),
+            likes: Math.max(0, currentLikes - 1)
+        });
     } else {
         await set(likeRef, true);
-        await update(postRef, { likesCount: currentLikes + 1, likes: currentLikes + 1 });
+        await update(postRef, {
+            likesCount: currentLikes + 1,
+            likes: currentLikes + 1
+        });
     }
 };
 
-window.toggleComments = function(postId) {
+window.openComments = function(postId, postOwnerId) {
     const box = document.getElementById("comments-" + postId);
     box.style.display = box.style.display === "block" ? "none" : "block";
-    loadComments(postId);
+    loadNestedComments(postId, postOwnerId);
 };
 
-function loadComments(postId) {
-    const list = document.getElementById("commentList-" + postId);
-
-    onValue(ref(database, "comments/" + postId), (snapshot) => {
-        list.innerHTML = "";
-
-        if (!snapshot.exists()) {
-            list.innerHTML = "<p>No comments yet.</p>";
-            return;
-        }
-
-        const comments = [];
-        snapshot.forEach(child => comments.push(child.val()));
-
-        comments.sort((a, b) => {
-            const likesA = a.likesCount || 0;
-            const likesB = b.likesCount || 0;
-            if (likesB !== likesA) return likesB - likesA;
-            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
-        });
-
-        comments.forEach(comment => {
-            const isOwner = comment.userId === currentUser.uid;
-
-            const div = document.createElement("div");
-            div.className = "comment-item";
-
-            div.innerHTML = `
-                <strong>${comment.userName}</strong>
-                <p id="commentText-${comment.commentId}">${comment.text}</p>
-
-                <small>❤️ ${comment.likesCount || 0} | 👎 ${comment.dislikesCount || 0}</small><br>
-
-                <button class="small-btn orange-btn" onclick="reactComment('${postId}', '${comment.commentId}', 'like')">Like</button>
-                <button class="small-btn dark-btn" onclick="reactComment('${postId}', '${comment.commentId}', 'dislike')">Dislike</button>
-                <button class="small-btn dark-btn" onclick="showReplyBox('${postId}', '${comment.commentId}')">Reply</button>
-
-                ${isOwner ? `
-                    <button class="small-btn dark-btn" onclick="editComment('${postId}', '${comment.commentId}', '${encodeURIComponent(comment.text)}')">Edit</button>
-                    <button class="small-btn danger-btn" onclick="deleteComment('${postId}', '${comment.commentId}')">Delete</button>
-                ` : ""}
-
-                <div id="replyBox-${comment.commentId}" style="display:none;margin-top:8px;">
-                    <input id="replyInput-${comment.commentId}" class="comment-input" placeholder="Write a reply...">
-                    <button class="small-btn orange-btn" onclick="addReply('${postId}', '${comment.commentId}')">Post Reply</button>
-                </div>
-
-                <div id="replies-${comment.commentId}"></div>
-            `;
-
-            list.appendChild(div);
-            loadReplies(postId, comment.commentId);
-        });
-    });
-}
-
-window.addComment = async function(postId) {
+window.addRootComment = async function(postId) {
     const input = document.getElementById("commentInput-" + postId);
     const text = input.value.trim();
 
@@ -219,11 +182,12 @@ window.addComment = async function(postId) {
         return;
     }
 
-    const commentRef = push(ref(database, "comments/" + postId));
+    const commentRef = push(ref(database, `comments/${postId}`));
 
     await set(commentRef, {
-        commentId: commentRef.key,
+        id: commentRef.key,
         postId,
+        parentId: null,
         userId: currentUser.uid,
         userName: currentUserData.fullName || "Qeja User",
         text,
@@ -235,33 +199,197 @@ window.addComment = async function(postId) {
     input.value = "";
 };
 
-window.editComment = async function(postId, commentId, oldText) {
-    const decoded = decodeURIComponent(oldText);
-    const newText = prompt("Edit your comment:", decoded);
+function loadNestedComments(postId, postOwnerId) {
+    const list = document.getElementById("commentList-" + postId);
+
+    onValue(ref(database, `comments/${postId}`), (snapshot) => {
+        list.innerHTML = "";
+
+        if (!snapshot.exists()) {
+            list.innerHTML = "<p>No comments yet.</p>";
+            return;
+        }
+
+        const comments = [];
+        snapshot.forEach(child => comments.push(child.val()));
+
+        const roots = comments
+            .filter(c => !c.parentId)
+            .sort((a, b) => {
+                const likesA = a.likesCount || 0;
+                const likesB = b.likesCount || 0;
+                if (likesB !== likesA) return likesB - likesA;
+                return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+            });
+
+        roots.forEach(comment => {
+            list.appendChild(renderComment(postId, postOwnerId, comment, comments, 0));
+        });
+    });
+}
+
+function renderComment(postId, postOwnerId, comment, allComments, level) {
+    const currentUserId = currentUser.uid;
+    const isCommentOwner = comment.userId === currentUserId;
+    const isOwnerOfPost = postOwnerId === currentUserId;
+
+    const userCanEdit = isCommentOwner && isWithin20Minutes(comment);
+    const userCanDeleteOwn = isCommentOwner && isWithin20Minutes(comment);
+    const postOwnerCanDelete = isOwnerOfPost;
+    const canDelete = userCanDeleteOwn || postOwnerCanDelete;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "comment-item";
+    wrapper.style.marginLeft = `${Math.min(level * 22, 90)}px`;
+
+    wrapper.innerHTML = `
+        <strong>${comment.userName || "Qeja User"}</strong>
+        <p>${comment.text}</p>
+
+        <small>
+            ❤️ ${comment.likesCount || 0}
+            &nbsp; 👎 ${comment.dislikesCount || 0}
+        </small><br>
+
+        <button class="small-btn orange-btn" onclick="reactToComment('${postId}', '${comment.id}', 'like')">Like</button>
+        <button class="small-btn dark-btn" onclick="reactToComment('${postId}', '${comment.id}', 'dislike')">Dislike</button>
+        <button class="small-btn dark-btn" onclick="showReplyInput('${comment.id}')">Reply</button>
+
+        ${userCanEdit ? `<button class="small-btn dark-btn" onclick="editNestedComment('${postId}', '${comment.id}')">Edit</button>` : ""}
+        ${canDelete ? `<button class="small-btn danger-btn" onclick="deleteNestedComment('${postId}', '${comment.id}')">Delete</button>` : ""}
+
+        <div id="replyBox-${comment.id}" style="display:none;margin-top:8px;">
+            <input id="replyInput-${comment.id}" class="comment-input" placeholder="Write a reply...">
+            <button class="small-btn orange-btn" onclick="addNestedReply('${postId}', '${comment.id}')">Post Reply</button>
+        </div>
+
+        <div id="children-${comment.id}"></div>
+    `;
+
+    const children = allComments
+        .filter(c => c.parentId === comment.id)
+        .sort((a, b) => {
+            const likesA = a.likesCount || 0;
+            const likesB = b.likesCount || 0;
+            if (likesB !== likesA) return likesB - likesA;
+            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        });
+
+    const childBox = wrapper.querySelector(`#children-${comment.id}`);
+
+    children.forEach(child => {
+        childBox.appendChild(renderComment(postId, postOwnerId, child, allComments, level + 1));
+    });
+
+    return wrapper;
+}
+
+window.showReplyInput = function(commentId) {
+    const box = document.getElementById("replyBox-" + commentId);
+    box.style.display = box.style.display === "block" ? "none" : "block";
+};
+
+window.addNestedReply = async function(postId, parentId) {
+    const input = document.getElementById("replyInput-" + parentId);
+    const text = input.value.trim();
+
+    if (!text) {
+        alert("Write a reply first");
+        return;
+    }
+
+    const replyRef = push(ref(database, `comments/${postId}`));
+
+    await set(replyRef, {
+        id: replyRef.key,
+        postId,
+        parentId,
+        userId: currentUser.uid,
+        userName: currentUserData.fullName || "Qeja User",
+        text,
+        likesCount: 0,
+        dislikesCount: 0,
+        createdAt: new Date().toISOString()
+    });
+
+    input.value = "";
+};
+
+window.editNestedComment = async function(postId, commentId) {
+    const commentRef = ref(database, `comments/${postId}/${commentId}`);
+    const snap = await get(commentRef);
+
+    if (!snap.exists()) return;
+
+    const comment = snap.val();
+
+    if (comment.userId !== currentUser.uid || !isWithin20Minutes(comment)) {
+        alert("You can only edit your own comment/reply within 20 minutes.");
+        return;
+    }
+
+    const newText = prompt("Edit your comment/reply:", comment.text);
 
     if (!newText || !newText.trim()) return;
 
-    await update(ref(database, `comments/${postId}/${commentId}`), {
+    await update(commentRef, {
         text: newText.trim(),
         editedAt: new Date().toISOString()
     });
 };
 
-window.deleteComment = async function(postId, commentId) {
-    if (confirm("Delete this comment?")) {
-        await remove(ref(database, `comments/${postId}/${commentId}`));
-        await remove(ref(database, `commentReactions/${postId}/${commentId}`));
-        await remove(ref(database, `replies/${postId}/${commentId}`));
-    }
-};
-
-window.reactComment = async function(postId, commentId, type) {
-    const reactionRef = ref(database, `commentReactions/${postId}/${commentId}/${currentUser.uid}`);
-    const reactionSnap = await get(reactionRef);
+window.deleteNestedComment = async function(postId, commentId) {
+    const postSnap = await get(ref(database, `posts/${postId}`));
+    const post = postSnap.exists() ? postSnap.val() : {};
 
     const commentRef = ref(database, `comments/${postId}/${commentId}`);
+    const snap = await get(commentRef);
+
+    if (!snap.exists()) return;
+
+    const comment = snap.val();
+
+    const isOwnCommentWithinTime = comment.userId === currentUser.uid && isWithin20Minutes(comment);
+    const isOwnerOfPost = post.ownerId === currentUser.uid;
+
+    if (!isOwnCommentWithinTime && !isOwnerOfPost) {
+        alert("You cannot delete this comment/reply.");
+        return;
+    }
+
+    if (!confirm("Delete this comment/reply and its replies?")) return;
+
+    await deleteCommentAndChildren(postId, commentId);
+};
+
+async function deleteCommentAndChildren(postId, commentId) {
+    const snap = await get(ref(database, `comments/${postId}`));
+
+    if (snap.exists()) {
+        const all = [];
+        snap.forEach(child => all.push(child.val()));
+
+        const children = all.filter(c => c.parentId === commentId);
+
+        for (const child of children) {
+            await deleteCommentAndChildren(postId, child.id);
+        }
+    }
+
+    await remove(ref(database, `comments/${postId}/${commentId}`));
+    await remove(ref(database, `commentReactions/${postId}/${commentId}`));
+};
+
+window.reactToComment = async function(postId, commentId, type) {
+    const reactionRef = ref(database, `commentReactions/${postId}/${commentId}/${currentUser.uid}`);
+    const commentRef = ref(database, `comments/${postId}/${commentId}`);
+
+    const reactionSnap = await get(reactionRef);
     const commentSnap = await get(commentRef);
-    const comment = commentSnap.val() || {};
+
+    if (!commentSnap.exists()) return;
+
+    const comment = commentSnap.val();
 
     let likes = comment.likesCount || 0;
     let dislikes = comment.dislikesCount || 0;
@@ -269,7 +397,19 @@ window.reactComment = async function(postId, commentId, type) {
     if (reactionSnap.exists()) {
         const oldType = reactionSnap.val();
 
-        if (oldType === type) return;
+        if (oldType === type) {
+            await remove(reactionRef);
+
+            if (type === "like") likes = Math.max(0, likes - 1);
+            if (type === "dislike") dislikes = Math.max(0, dislikes - 1);
+
+            await update(commentRef, {
+                likesCount: likes,
+                dislikesCount: dislikes
+            });
+
+            return;
+        }
 
         if (oldType === "like") likes = Math.max(0, likes - 1);
         if (oldType === "dislike") dislikes = Math.max(0, dislikes - 1);
@@ -279,56 +419,12 @@ window.reactComment = async function(postId, commentId, type) {
     if (type === "dislike") dislikes++;
 
     await set(reactionRef, type);
-    await update(commentRef, { likesCount: likes, dislikesCount: dislikes });
-};
 
-window.showReplyBox = function(postId, commentId) {
-    const box = document.getElementById("replyBox-" + commentId);
-    box.style.display = box.style.display === "block" ? "none" : "block";
-};
-
-window.addReply = async function(postId, commentId) {
-    const input = document.getElementById("replyInput-" + commentId);
-    const text = input.value.trim();
-
-    if (!text) {
-        alert("Write a reply first");
-        return;
-    }
-
-    const replyRef = push(ref(database, `replies/${postId}/${commentId}`));
-
-    await set(replyRef, {
-        replyId: replyRef.key,
-        userId: currentUser.uid,
-        userName: currentUserData.fullName || "Qeja User",
-        text,
-        createdAt: new Date().toISOString()
+    await update(commentRef, {
+        likesCount: likes,
+        dislikesCount: dislikes
     });
-
-    input.value = "";
 };
-
-function loadReplies(postId, commentId) {
-    const replyContainer = document.getElementById("replies-" + commentId);
-
-    onValue(ref(database, `replies/${postId}/${commentId}`), (snapshot) => {
-        replyContainer.innerHTML = "";
-
-        if (!snapshot.exists()) return;
-
-        snapshot.forEach(child => {
-            const reply = child.val();
-            const div = document.createElement("div");
-            div.className = "reply-item";
-            div.innerHTML = `
-                <strong>${reply.userName}</strong>
-                <p>${reply.text}</p>
-            `;
-            replyContainer.appendChild(div);
-        });
-    });
-}
 
 window.sendInquiry = async function(postId, ownerId) {
     if (!ownerId) {
