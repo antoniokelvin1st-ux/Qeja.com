@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Qeja</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">QEJA ADMIN</div>
+    <a href="index.html" class="login-btn">View Site</a>
+</nav>
+
+<section style="padding:120px 7% 60px;">
+    <h2>Admin Dashboard</h2>
+    <p>Manage properties, reels, users and website content.</p>
+
+    <div class="property-grid" style="margin-top:40px;">
+
+        <div class="property-card">
+            <div class="property-info">
+                <h3>Add Property</h3>
+                <input type="text" placeholder="Property name" style="width:100%;padding:12px;margin:8px 0;">
+                <input type="text" placeholder="Location" style="width:100%;padding:12px;margin:8px 0;">
+                <input type="text" placeholder="Price" style="width:100%;padding:12px;margin:8px 0;">
+                <input type="file" style="width:100%;padding:12px;margin:8px 0;">
+                <button style="background:#ff7a18;color:white;border:none;padding:12px 20px;border-radius:25px;">Add Property</button>
+            </div>
+        </div>
+
+        <div class="property-card">
+            <div class="property-info">
+                <h3>Manage Properties</h3>
+                <p>Modern Family House - Ksh 45,000</p>
+                <button>Edit</button>
+                <button>Delete</button>
+
+                <hr>
+
+                <p>Luxury Apartment - Ksh 75,000</p>
+                <button>Edit</button>
+                <button>Delete</button>
+            </div>
+        </div>
+
+        <div class="property-card">
+            <div class="property-info">
+                <h3>Upload Reels</h3>
+                <input type="text" placeholder="Reel title" style="width:100%;padding:12px;margin:8px 0;">
+                <input type="file" accept="video/*" style="width:100%;padding:12px;margin:8px 0;">
+                <button style="background:#ff7a18;color:white;border:none;padding:12px 20px;border-radius:25px;">Upload Reel</button>
+            </div>
+        </div>
+
+        <div class="property-card">
+            <div class="property-info">
+                <h3>Website Info</h3>
+                <textarea placeholder="Update Qeja company/profile information" style="width:100%;height:120px;padding:12px;"></textarea>
+                <button style="margin-top:10px;background:#ff7a18;color:white;border:none;padding:12px 20px;border-radius:25px;">Save Info</button>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Qeja.com Admin Panel</p>
+</footer>
+
+</body>
+</html>
