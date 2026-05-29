@@ -5,7 +5,7 @@ import { getDatabase } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-
 const firebaseConfig = {
     apiKey: "AIzaSyDp33VJKZSPDYwU5OY_Nzq-fnAck50-bDA",
     authDomain: "qeja-com.firebaseapp.com",
-    databaseURL: "https://qeja-com-default-rtdb.firebaseio.com",
+    databaseURL: "https://qeja-com-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "qeja-com",
     storageBucket: "qeja-com.firebasestorage.app",
     messagingSenderId: "219739142262",
