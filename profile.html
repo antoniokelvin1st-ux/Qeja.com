@@ -19,7 +19,7 @@
         <li><a href="profile.html">Profile</a></li>
     </ul>
 
-    <a href="login.html" class="login-btn">Login</a>
+    <button id="logoutBtn" class="login-btn" style="border:none;cursor:pointer;">Logout</button>
 </nav>
 
 <section style="padding:120px 7% 60px;">
@@ -38,48 +38,10 @@
 
             <h3>Account Information</h3>
 
-            <p><strong>Name:</strong> User Name</p>
-            <p><strong>Email:</strong> user@email.com</p>
-            <p><strong>Phone:</strong> +254 700 000 000</p>
-            <p><strong>Location:</strong> Nairobi, Kenya</p>
-
-            <div style="margin-top:30px;">
-                <button style="
-                    background:#ff7a18;
-                    color:white;
-                    border:none;
-                    padding:12px 25px;
-                    border-radius:30px;
-                    cursor:pointer;">
-                    Edit Profile
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-    <div style="margin-top:50px;">
-        <h2>Saved Properties</h2>
-
-        <div class="property-grid">
-
-            <div class="property-card">
-                <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6">
-                <div class="property-info">
-                    <h3>Modern Family House</h3>
-                    <p>Kasarani, Nairobi</p>
-                    <h4>Ksh 45,000 / month</h4>
-                </div>
-            </div>
-
-            <div class="property-card">
-                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c">
-                <div class="property-info">
-                    <h3>Luxury Apartment</h3>
-                    <p>Kilimani, Nairobi</p>
-                    <h4>Ksh 75,000 / month</h4>
-                </div>
-            </div>
+            <p><strong>Name:</strong> <span id="userName">Loading...</span></p>
+            <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+            <p><strong>Phone:</strong> <span id="userPhone">Loading...</span></p>
+            <p><strong>Role:</strong> <span id="userRole">Loading...</span></p>
 
         </div>
     </div>
@@ -89,6 +51,41 @@
 <footer>
     <p>&copy; 2026 Qeja.com. All rights reserved.</p>
 </footer>
+
+<script type="module">
+import { auth, database } from "./firebase.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const userRef = ref(database, "users/" + user.uid);
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+
+            document.getElementById("userName").textContent = data.fullName || "Not provided";
+            document.getElementById("userEmail").textContent = data.email || user.email;
+            document.getElementById("userPhone").textContent = data.phone || "Not provided";
+            document.getElementById("userRole").textContent = data.role || "user";
+        } else {
+            document.getElementById("userName").textContent = "Not found";
+            document.getElementById("userEmail").textContent = user.email;
+            document.getElementById("userPhone").textContent = "Not found";
+            document.getElementById("userRole").textContent = "user";
+        }
+    } else {
+        window.location.href = "login.html";
+    }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth);
+    alert("Logged out successfully");
+    window.location.href = "login.html";
+});
+</script>
 
 </body>
 </html>
