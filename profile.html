@@ -5,69 +5,185 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile - Qeja</title>
 <link rel="stylesheet" href="style.css">
+
+<style>
+body{padding-bottom:80px;background:#f4f4f4;}
+.top-appbar{background:#111;color:white;padding:16px 7%;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+.logo{font-size:30px;font-weight:900;color:#ff7a18;}
+.menu-wrap{position:relative;}
+.menu-btn{background:none;border:none;color:white;font-size:28px;cursor:pointer;}
+.menu-popup{display:none;position:absolute;right:0;top:40px;background:white;color:#111;width:230px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,.2);overflow:hidden;z-index:300;}
+.menu-popup a,.menu-popup button{display:block;width:100%;padding:14px 18px;background:white;border:none;text-align:left;text-decoration:none;color:#111;font-weight:bold;cursor:pointer;}
+.menu-popup a:hover,.menu-popup button:hover{background:#f4f4f4;}
+
+.profile-wrap{max-width:900px;margin:auto;padding:25px 7% 100px;}
+.profile-header{text-align:center;background:white;border-radius:22px;padding:28px 18px;box-shadow:0 8px 20px rgba(0,0,0,.08);}
+.profile-pic{width:120px;height:120px;border-radius:50%;object-fit:cover;border:4px solid #ff7a18;background:#eee;}
+.username{font-size:28px;font-weight:900;margin-top:12px;}
+.handle{color:#777;font-weight:bold;margin-top:3px;}
+.bio{max-width:620px;margin:12px auto;color:#333;}
+.edit-btn{background:#eee;color:#111;border:none;padding:10px 22px;border-radius:25px;font-weight:bold;cursor:pointer;margin-top:12px;}
+.stats{display:flex;justify-content:center;gap:30px;margin-top:22px;flex-wrap:wrap;}
+.stat{text-align:center;}
+.stat strong{font-size:22px;display:block;}
+.stat span{color:#777;font-weight:bold;}
+
+.profile-tabs{display:flex;justify-content:center;gap:12px;margin:24px 0;flex-wrap:wrap;}
+.tab-btn{border:none;background:white;padding:10px 18px;border-radius:25px;font-weight:bold;cursor:pointer;}
+.tab-btn.active{background:#ff7a18;color:white;}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+.grid-card{position:relative;background:white;min-height:180px;overflow:hidden;}
+.grid-card img{width:100%;height:220px;object-fit:cover;display:block;background:#ddd;}
+.grid-info{padding:10px;background:white;}
+.grid-info h4{font-size:14px;margin-bottom:4px;}
+.grid-info p{font-size:13px;color:#555;}
+.delete-btn{position:absolute;top:8px;right:8px;background:#cc0000;color:white;border:none;padding:7px 10px;border-radius:18px;cursor:pointer;font-size:12px;font-weight:bold;}
+.edit-post-btn{position:absolute;top:8px;left:8px;background:#111;color:white;border:none;padding:7px 10px;border-radius:18px;cursor:pointer;font-size:12px;font-weight:bold;}
+
+.modal{display:none;position:fixed;left:0;right:0;bottom:0;background:white;border-radius:28px 28px 0 0;box-shadow:0 -10px 25px rgba(0,0,0,.2);z-index:400;padding:22px;max-height:85vh;overflow:auto;}
+.modal h2{margin-bottom:15px;}
+.modal input,.modal textarea{width:100%;padding:14px;margin:8px 0;border-radius:10px;border:1px solid #ddd;}
+.modal textarea{height:100px;}
+.modal-actions{display:flex;gap:10px;margin-top:12px;}
+.save-btn{background:#ff7a18;color:white;border:none;padding:12px 20px;border-radius:25px;font-weight:bold;cursor:pointer;}
+.cancel-btn{background:#111;color:white;border:none;padding:12px 20px;border-radius:25px;font-weight:bold;cursor:pointer;}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;height:70px;display:flex;justify-content:space-around;align-items:center;z-index:200;}
+.bottom-nav a{text-decoration:none;color:#555;font-size:13px;font-weight:bold;text-align:center;}
+.bottom-nav span{display:block;font-size:23px;}
+.post-plus{background:#111;color:white!important;width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin-top:-28px;border:4px solid #ff7a18;}
+.post-plus span{font-size:34px;}
+
+@media(max-width:700px){
+    .profile-wrap{padding:18px 4% 95px;}
+    .grid-card img{height:150px;}
+    .stats{gap:20px;}
+}
+</style>
 </head>
+
 <body>
 
-<nav class="navbar">
+<header class="top-appbar">
     <div class="logo">QEJA</div>
 
-    <ul class="nav-links">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="property.html">Properties</a></li>
-        <li><a href="reels.html">Reels</a></li>
-        <li><a href="messages.html">Messages</a></li>
-        <li><a href="settings.html">Settings</a></li>
-    </ul>
+    <div class="menu-wrap">
+        <button class="menu-btn" onclick="toggleMenu()">⋯</button>
 
-    <button id="logoutBtn" class="login-btn" style="border:none;cursor:pointer;">Logout</button>
-</nav>
-
-<section style="padding:120px 7% 60px;">
-
-    <div class="property-card" style="max-width:800px;margin:auto;">
-        <div class="property-info" style="text-align:center;">
-
-            <img id="profileImage"
-                 src="https://i.pravatar.cc/200"
-                 alt="Profile"
-                 style="width:150px;height:150px;border-radius:50%;margin-bottom:20px;object-fit:cover;">
-
-            <h2 id="profileName">Loading...</h2>
-            <p id="profileLocation">Loading location...</p>
-
-            <hr style="margin:30px 0;">
-
-            <h3>Account Information</h3>
-
-            <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
-            <p><strong>Phone:</strong> <span id="userPhone">Loading...</span></p>
-            <p><strong>Role:</strong> <span id="userRole">Loading...</span></p>
-
-            <a href="settings.html"
-   style="display:inline-block;
-          background:#ff7a18;
-          color:white;
-          padding:12px 25px;
-          border-radius:30px;
-          text-decoration:none;
-          font-weight:600;
-          margin-top:25px;">
-    Edit Profile 
-</a>
-
+        <div id="menuPopup" class="menu-popup">
+            <a href="settings.html">Settings</a>
+            <a href="post.html">Create Post</a>
+            <a href="inbox.html">Inbox</a>
+            <button id="logoutBtn">Logout</button>
         </div>
     </div>
+</header>
 
-</section>
+<main class="profile-wrap">
 
-<footer>
-    <p>&copy; 2026 Qeja.com. All rights reserved.</p>
-</footer>
+    <section class="profile-header">
+        <img id="profileImage" class="profile-pic" src="https://i.pravatar.cc/200" alt="Profile">
+
+        <div id="profileName" class="username">Loading...</div>
+        <div id="profileHandle" class="handle">@qeja.user</div>
+
+        <p id="profileBio" class="bio">No bio added yet.</p>
+
+        <button class="edit-btn" onclick="openEditProfile()">Edit Profile</button>
+
+        <div class="stats">
+            <div class="stat">
+                <strong id="listingsCount">0</strong>
+                <span>Listings</span>
+            </div>
+
+            <div class="stat">
+                <strong id="totalLikes">0</strong>
+                <span>Likes</span>
+            </div>
+
+            <div class="stat">
+                <strong id="totalViews">0</strong>
+                <span>Views</span>
+            </div>
+
+            <div class="stat">
+                <strong id="followersCount">0</strong>
+                <span>Followers</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="profile-tabs">
+        <button class="tab-btn active" onclick="showTab('posts')">Posts</button>
+        <button class="tab-btn" onclick="showTab('reels')">Reels</button>
+        <button class="tab-btn" onclick="showTab('saved')">Saved</button>
+    </div>
+
+    <section id="postsTab">
+        <div id="userPostsGrid" class="grid"></div>
+    </section>
+
+    <section id="reelsTab" style="display:none;">
+        <div id="userReelsGrid" class="grid"></div>
+    </section>
+
+    <section id="savedTab" style="display:none;">
+        <div class="profile-header">
+            <h3>Saved Properties</h3>
+            <p>Saved posts will appear here later.</p>
+        </div>
+    </section>
+
+</main>
+
+<div id="editProfileModal" class="modal">
+    <h2>Edit Profile</h2>
+
+    <input id="editName" type="text" placeholder="Full Name">
+    <input id="editHandle" type="text" placeholder="Username / Handle e.g qeja.agent">
+    <input id="editPhoto" type="text" placeholder="Profile Image URL">
+    <textarea id="editBio" placeholder="Write your bio / description"></textarea>
+
+    <div class="modal-actions">
+        <button class="save-btn" onclick="saveProfileChanges()">Save</button>
+        <button class="cancel-btn" onclick="closeEditProfile()">Cancel</button>
+    </div>
+</div>
+
+<div id="editPostModal" class="modal">
+    <h2>Edit Listing</h2>
+
+    <input id="editPostTitle" type="text" placeholder="Title">
+    <input id="editPostLocation" type="text" placeholder="Location">
+    <input id="editPostPrice" type="text" placeholder="Price">
+    <input id="editPostImage" type="text" placeholder="Image URL">
+    <textarea id="editPostDescription" placeholder="Description"></textarea>
+
+    <div class="modal-actions">
+        <button class="save-btn" onclick="savePostChanges()">Save Listing</button>
+        <button class="cancel-btn" onclick="closeEditPost()">Cancel</button>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <a href="index.html"><span>🏠</span>Home</a>
+    <a href="explore.html"><span>🔍</span>Explore</a>
+    <a href="post.html" class="post-plus"><span>+</span></a>
+    <a href="inbox.html"><span>💬</span>Inbox</a>
+    <a href="profile.html"><span>👤</span>Profile</a>
+</nav>
 
 <script type="module">
 import { auth, database } from "./firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { ref, get } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+import { ref, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+
+let currentUser = null;
+let currentUserData = null;
+let userPosts = [];
+let editingPostId = null;
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -75,22 +191,238 @@ onAuthStateChanged(auth, async (user) => {
         return;
     }
 
-    const snapshot = await get(ref(database, "users/" + user.uid));
+    currentUser = user;
 
-    if (snapshot.exists()) {
-        const data = snapshot.val();
-
-        document.getElementById("profileName").textContent = data.fullName || "Qeja User";
-        document.getElementById("profileLocation").textContent = data.location || "Location not added";
-        document.getElementById("userEmail").textContent = data.email || user.email;
-        document.getElementById("userPhone").textContent = data.phone || "Not provided";
-        document.getElementById("userRole").textContent = data.role || "user";
-
-        if (data.photoURL) {
-            document.getElementById("profileImage").src = data.photoURL;
-        }
-    }
+    await loadProfile();
+    loadUserPosts();
 });
+
+async function loadProfile() {
+    const snap = await get(ref(database, "users/" + currentUser.uid));
+
+    if (snap.exists()) {
+        currentUserData = snap.val();
+    } else {
+        currentUserData = {
+            fullName: "Qeja User",
+            email: currentUser.email,
+            bio: "",
+            handle: "qeja.user",
+            photoURL: ""
+        };
+    }
+
+    document.getElementById("profileName").textContent = currentUserData.fullName || "Qeja User";
+    document.getElementById("profileHandle").textContent = "@" + (currentUserData.handle || currentUserData.fullName || "qeja.user").toString().replace(/\s+/g, ".").toLowerCase();
+    document.getElementById("profileBio").textContent = currentUserData.bio || "No bio added yet.";
+
+    if (currentUserData.photoURL) {
+        document.getElementById("profileImage").src = currentUserData.photoURL;
+    }
+
+    document.getElementById("editName").value = currentUserData.fullName || "";
+    document.getElementById("editHandle").value = currentUserData.handle || "";
+    document.getElementById("editPhoto").value = currentUserData.photoURL || "";
+    document.getElementById("editBio").value = currentUserData.bio || "";
+}
+
+function loadUserPosts() {
+    onValue(ref(database, "posts"), (snapshot) => {
+        userPosts = [];
+
+        if (snapshot.exists()) {
+            snapshot.forEach(child => {
+                const post = child.val();
+
+                if (post.ownerId === currentUser.uid) {
+                    userPosts.push(post);
+                }
+            });
+        }
+
+        userPosts.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+        renderStats();
+        renderPosts();
+        renderReels();
+    });
+}
+
+function renderStats() {
+    let likes = 0;
+    let views = 0;
+
+    userPosts.forEach(post => {
+        likes += post.likesCount || post.likes || 0;
+        views += post.views || 0;
+    });
+
+    document.getElementById("listingsCount").textContent = userPosts.length;
+    document.getElementById("totalLikes").textContent = likes;
+    document.getElementById("totalViews").textContent = views;
+    document.getElementById("followersCount").textContent = currentUserData.followers || 0;
+}
+
+function renderPosts() {
+    const grid = document.getElementById("userPostsGrid");
+    grid.innerHTML = "";
+
+    if (userPosts.length === 0) {
+        grid.innerHTML = "<p style='padding:20px;'>No listings yet. Tap + to post your first property.</p>";
+        return;
+    }
+
+    userPosts.forEach(post => {
+        const image = post.imageURL || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6";
+
+        const card = document.createElement("div");
+        card.className = "grid-card";
+
+        card.innerHTML = `
+            <button class="edit-post-btn" onclick="openEditPost('${post.postId}')">Edit</button>
+            <button class="delete-btn" onclick="deletePost('${post.postId}')">Delete</button>
+
+            <img src="${image}" onerror="this.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6'">
+
+            <div class="grid-info">
+                <h4>${post.title || "Property"}</h4>
+                <p>${post.price || ""}</p>
+                <p>❤️ ${post.likesCount || post.likes || 0} | 👁 ${post.views || 0}</p>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    });
+}
+
+function renderReels() {
+    const grid = document.getElementById("userReelsGrid");
+    grid.innerHTML = "";
+
+    const reels = userPosts.filter(post => post.videoURL);
+
+    if (reels.length === 0) {
+        grid.innerHTML = "<p style='padding:20px;'>No reels yet.</p>";
+        return;
+    }
+
+    reels.forEach(post => {
+        const image = post.imageURL || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6";
+
+        const card = document.createElement("div");
+        card.className = "grid-card";
+
+        card.innerHTML = `
+            <img src="${image}" onerror="this.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6'">
+            <div class="grid-info">
+                <h4>${post.title || "Reel"}</h4>
+                <a href="${post.videoURL}" target="_blank" style="color:#ff7a18;font-weight:bold;">Watch Reel</a>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    });
+}
+
+window.toggleMenu = function() {
+    const menu = document.getElementById("menuPopup");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+};
+
+window.openEditProfile = function() {
+    document.getElementById("editProfileModal").style.display = "block";
+};
+
+window.closeEditProfile = function() {
+    document.getElementById("editProfileModal").style.display = "none";
+};
+
+window.saveProfileChanges = async function() {
+    const fullName = document.getElementById("editName").value.trim();
+    const handle = document.getElementById("editHandle").value.trim();
+    const photoURL = document.getElementById("editPhoto").value.trim();
+    const bio = document.getElementById("editBio").value.trim();
+
+    await update(ref(database, "users/" + currentUser.uid), {
+        fullName,
+        handle,
+        photoURL,
+        bio
+    });
+
+    alert("Profile updated successfully");
+    closeEditProfile();
+    await loadProfile();
+};
+
+window.openEditPost = function(postId) {
+    const post = userPosts.find(p => p.postId === postId);
+    if (!post) return;
+
+    editingPostId = postId;
+
+    document.getElementById("editPostTitle").value = post.title || "";
+    document.getElementById("editPostLocation").value = post.location || "";
+    document.getElementById("editPostPrice").value = post.price || "";
+    document.getElementById("editPostImage").value = post.imageURL || "";
+    document.getElementById("editPostDescription").value = post.description || "";
+
+    document.getElementById("editPostModal").style.display = "block";
+};
+
+window.closeEditPost = function() {
+    editingPostId = null;
+    document.getElementById("editPostModal").style.display = "none";
+};
+
+window.savePostChanges = async function() {
+    if (!editingPostId) return;
+
+    await update(ref(database, "posts/" + editingPostId), {
+        title: document.getElementById("editPostTitle").value.trim(),
+        location: document.getElementById("editPostLocation").value.trim(),
+        price: document.getElementById("editPostPrice").value.trim(),
+        imageURL: document.getElementById("editPostImage").value.trim(),
+        description: document.getElementById("editPostDescription").value.trim(),
+        updatedAt: new Date().toISOString()
+    });
+
+    alert("Listing updated successfully");
+    closeEditPost();
+};
+
+window.deletePost = async function(postId) {
+    if (!confirm("Delete this listing permanently?")) return;
+
+    await remove(ref(database, "posts/" + postId));
+    await remove(ref(database, "comments/" + postId));
+    await remove(ref(database, "postLikes/" + postId));
+
+    alert("Listing deleted");
+};
+
+window.showTab = function(tab) {
+    document.getElementById("postsTab").style.display = "none";
+    document.getElementById("reelsTab").style.display = "none";
+    document.getElementById("savedTab").style.display = "none";
+
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+
+    if (tab === "posts") {
+        document.getElementById("postsTab").style.display = "block";
+        document.querySelectorAll(".tab-btn")[0].classList.add("active");
+    }
+
+    if (tab === "reels") {
+        document.getElementById("reelsTab").style.display = "block";
+        document.querySelectorAll(".tab-btn")[1].classList.add("active");
+    }
+
+    if (tab === "saved") {
+        document.getElementById("savedTab").style.display = "block";
+        document.querySelectorAll(".tab-btn")[2].classList.add("active");
+    }
+};
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
     await signOut(auth);
