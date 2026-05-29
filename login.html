@@ -1,9 +1,53 @@
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-  }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - Qeja</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="logo">QEJA</div>
+
+    <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="property.html">Properties</a></li>
+        <li><a href="reels.html">Reels</a></li>
+        <li><a href="messages.html">Messages</a></li>
+        <li><a href="profile.html">Profile</a></li>
+    </ul>
+
+    <a href="signup.html" class="login-btn">Sign Up</a>
+</nav>
+
+<section style="padding:130px 7% 70px; min-height:80vh;">
+    <div class="property-card" style="max-width:450px;margin:auto;">
+        <div class="property-info">
+
+            <h2 style="text-align:center;margin-bottom:20px;">Login</h2>
+
+            <input type="email" placeholder="Email address" style="width:100%;padding:14px;margin-bottom:15px;border-radius:8px;border:1px solid #ddd;">
+
+            <input type="password" placeholder="Password" style="width:100%;padding:14px;margin-bottom:20px;border-radius:8px;border:1px solid #ddd;">
+
+            <button style="width:100%;background:#ff7a18;color:white;border:none;padding:14px;border-radius:30px;cursor:pointer;">
+                Login
+            </button>
+
+            <p style="text-align:center;margin-top:20px;">
+                Don't have an account?
+                <a href="signup.html" style="color:#ff7a18;">Create one</a>
+            </p>
+
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 Qeja.com. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
