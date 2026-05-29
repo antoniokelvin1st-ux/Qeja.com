@@ -152,7 +152,11 @@ async function loadDetails() {
 
                 <div class="owner-box">
                     <h3>Owner / Agent</h3>
-                    <p><strong>${post.contactName || post.ownerName || "Qeja User"}</strong></p>
+                    <p>
+    <a href="user.html?id=${post.ownerId}" style="text-decoration:none;color:#111;font-weight:bold;">
+        ${post.contactName || post.ownerName || "Qeja User"}
+    </a>
+</p>
                     <p>${post.contactPhone || "Phone not added"}</p>
                     <p>${email || "Email not added"}</p>
                 </div>
