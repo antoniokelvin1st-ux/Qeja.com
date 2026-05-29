@@ -3,46 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Post - Qeja</title>
+<title>Create Post - Qeja</title>
 <link rel="stylesheet" href="style.css">
+
+<style>
+body{padding-bottom:80px;background:#f4f4f4;}
+.top-appbar{background:#111;color:white;padding:18px 7%;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+.logo{font-size:30px;font-weight:900;color:#ff7a18;}
+.post-wrap{padding:30px 7% 100px;max-width:800px;margin:auto;}
+.post-card{background:white;border-radius:22px;padding:22px;box-shadow:0 8px 20px rgba(0,0,0,.08);}
+.post-card input,.post-card select,.post-card textarea{width:100%;padding:14px;margin:8px 0;border-radius:10px;border:1px solid #ddd;}
+.post-card textarea{height:120px;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.publish-btn{width:100%;background:#ff7a18;color:white;border:none;padding:15px;border-radius:30px;font-weight:bold;cursor:pointer;margin-top:15px;}
+.cancel-link{color:white;text-decoration:none;font-weight:bold;}
+.note{background:#fff3e8;padding:12px;border-radius:12px;margin:12px 0;color:#8a3f00;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;height:70px;display:flex;justify-content:space-around;align-items:center;z-index:200;}
+.bottom-nav a{text-decoration:none;color:#555;font-size:13px;font-weight:bold;text-align:center;}
+.bottom-nav span{display:block;font-size:23px;}
+.post-plus{background:#111;color:white!important;width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin-top:-28px;border:4px solid #ff7a18;}
+.post-plus span{font-size:34px;}
+@media(max-width:700px){.row{grid-template-columns:1fr;}}
+</style>
 </head>
+
 <body>
 
-<header class="top-appbar" style="background:#111;color:white;padding:18px 7%;display:flex;justify-content:space-between;align-items:center;">
+<header class="top-appbar">
     <div class="logo">QEJA</div>
-    <a href="index.html" style="color:white;text-decoration:none;font-weight:bold;">Cancel</a>
+    <a href="index.html" class="cancel-link">Cancel</a>
 </header>
 
-<section style="padding:40px 7% 100px;">
-    <div class="property-card" style="max-width:700px;margin:auto;">
-        <div class="property-info">
-            <h2>Create Property Post</h2>
-            <p style="margin-bottom:20px;">Post a rental, house, apartment, plot, or property reel.</p>
+<main class="post-wrap">
+    <div class="post-card">
+        <h1>Create Listing</h1>
+        <p>Post a rental, apartment, house, plot, hostel, Airbnb, or property reel.</p>
 
-            <input id="postTitle" type="text" placeholder="Property title" style="width:100%;padding:14px;margin:8px 0;">
-            <input id="postLocation" type="text" placeholder="Location" style="width:100%;padding:14px;margin:8px 0;">
-            <input id="postPrice" type="text" placeholder="Price e.g Ksh 25,000/month" style="width:100%;padding:14px;margin:8px 0;">
-            <input id="postImage" type="text" placeholder="Image URL" style="width:100%;padding:14px;margin:8px 0;">
-            <input id="postVideo" type="text" placeholder="Video/Reel URL optional" style="width:100%;padding:14px;margin:8px 0;">
+        <div class="note">
+            For now, use image/video links. Direct gallery uploads will be added when Firebase Storage is available.
+        </div>
 
-            <select id="postCategory" style="width:100%;padding:14px;margin:8px 0;">
+        <input id="postTitle" type="text" placeholder="Property title e.g Modern bedsitter near KU">
+
+        <div class="row">
+            <select id="postCategory">
                 <option value="">Select category</option>
                 <option value="Rental">Rental</option>
                 <option value="Apartment">Apartment</option>
                 <option value="House">House</option>
                 <option value="Land">Land / Plot</option>
                 <option value="Commercial">Commercial</option>
+                <option value="Hostel">Hostel</option>
                 <option value="Airbnb">Airbnb</option>
+                <option value="Office">Office</option>
             </select>
 
-            <textarea id="postDescription" placeholder="Describe the property..." style="width:100%;height:120px;padding:14px;margin:8px 0;"></textarea>
-
-            <button id="publishBtn" style="width:100%;background:#ff7a18;color:white;border:none;padding:14px;border-radius:30px;cursor:pointer;font-weight:bold;">
-                Publish Post
-            </button>
+            <select id="postType">
+                <option value="Property">Property Post</option>
+                <option value="Reel">Property Reel</option>
+                <option value="Featured">Featured Listing</option>
+            </select>
         </div>
+
+        <div class="row">
+            <input id="postLocation" type="text" placeholder="Location e.g Kenyatta University">
+            <input id="postPrice" type="text" placeholder="Price e.g Ksh 20,000 / month">
+        </div>
+
+        <input id="postImage" type="text" placeholder="Main image URL">
+        <input id="postVideo" type="text" placeholder="Video/Reel URL optional">
+
+        <textarea id="postDescription" placeholder="Describe the property, rooms, security, water, nearby roads, rules, etc."></textarea>
+
+        <h3>Contact Details</h3>
+
+        <div class="row">
+            <input id="contactName" type="text" placeholder="Contact name">
+            <input id="contactPhone" type="tel" placeholder="Phone number">
+        </div>
+
+        <div class="row">
+            <input id="whatsappNumber" type="tel" placeholder="WhatsApp number">
+            <input id="contactEmail" type="email" placeholder="Contact email">
+        </div>
+
+        <select id="visibility">
+            <option value="public">Public</option>
+            <option value="draft">Save as Draft</option>
+        </select>
+
+        <button id="publishBtn" class="publish-btn">Publish Listing</button>
     </div>
-</section>
+</main>
 
 <nav class="bottom-nav">
     <a href="index.html"><span>🏠</span>Home</a>
@@ -73,19 +125,29 @@ onAuthStateChanged(auth, async (user) => {
         fullName: "Qeja User",
         email: user.email
     };
+
+    document.getElementById("contactName").value = currentUserData.fullName || "";
+    document.getElementById("contactEmail").value = currentUser.email || "";
+    document.getElementById("contactPhone").value = currentUserData.phone || "";
 });
 
 document.getElementById("publishBtn").addEventListener("click", async () => {
     const title = document.getElementById("postTitle").value.trim();
+    const category = document.getElementById("postCategory").value;
+    const type = document.getElementById("postType").value;
     const location = document.getElementById("postLocation").value.trim();
     const price = document.getElementById("postPrice").value.trim();
     const imageURL = document.getElementById("postImage").value.trim();
     const videoURL = document.getElementById("postVideo").value.trim();
-    const category = document.getElementById("postCategory").value;
     const description = document.getElementById("postDescription").value.trim();
+    const contactName = document.getElementById("contactName").value.trim();
+    const contactPhone = document.getElementById("contactPhone").value.trim();
+    const whatsappNumber = document.getElementById("whatsappNumber").value.trim();
+    const contactEmail = document.getElementById("contactEmail").value.trim();
+    const visibility = document.getElementById("visibility").value;
 
-    if (!title || !location || !price || !imageURL || !category || !description) {
-        alert("Please fill all required fields");
+    if (!title || !category || !location || !price || !imageURL || !description || !contactPhone) {
+        alert("Please fill title, category, location, price, image URL, description and phone number.");
         return;
     }
 
@@ -96,22 +158,31 @@ document.getElementById("publishBtn").addEventListener("click", async () => {
         ownerId: currentUser.uid,
         ownerName: currentUserData.fullName || "Qeja User",
         ownerEmail: currentUser.email,
+        ownerPhoto: currentUserData.photoURL || "",
         title,
+        category,
+        type,
         location,
         price,
         imageURL,
         videoURL,
-        category,
         description,
+        contactName,
+        contactPhone,
+        whatsappNumber,
+        contactEmail,
+        visibility,
+        status: visibility === "public" ? "public" : "draft",
         likes: 0,
+        likesCount: 0,
         views: 0,
         saves: 0,
-        status: "public",
+        inquiries: 0,
         createdAt: new Date().toISOString()
     });
 
-    alert("Post published successfully!");
-    window.location.href = "index.html";
+    alert(visibility === "draft" ? "Draft saved successfully!" : "Listing published successfully!");
+    window.location.href = "profile.html";
 });
 </script>
 
