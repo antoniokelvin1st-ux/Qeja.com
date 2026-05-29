@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Qeja.com</title>
-
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qeja.com</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -13,65 +12,76 @@
     <div class="logo">QEJA</div>
 
     <ul class="nav-links">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Properties</a></li>
-        <li><a href="#">Reels</a></li>
-        <li><a href="#">Messages</a></li>
-        <li><a href="#">Profile</a></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="property.html">Properties</a></li>
+        <li><a href="reels.html">Reels</a></li>
+        <li><a href="messages.html">Messages</a></li>
+        <li><a href="profile.html">Profile</a></li>
     </ul>
 
-    <a href="login.html" class="btn">Login</a>
+    <a href="login.html" class="login-btn">Login</a>
 </nav>
 
 <section class="hero">
-    <h1>Find Your Next Home</h1>
-    <p>Rentals, Plots, Apartments, Houses and More</p>
+    <div class="hero-content">
+        <h1>Find Your Next Home</h1>
+        <p>Rentals, Plots, Apartments, Houses and More</p>
 
-    <div class="search-box">
-        <input type="text" placeholder="Search location...">
-        <button>Search</button>
+        <div class="search-box">
+            <input type="text" placeholder="Search location...">
+            <button>Search</button>
+        </div>
     </div>
 </section>
 
-<section class="properties">
+<section class="featured">
+    <h2>Featured Properties</h2>
 
-<h2>Featured Properties</h2>
+    <div class="property-grid">
+        <div class="property-card">
+            <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6" alt="Modern house">
+            <div class="property-info">
+                <h3>Modern Family House</h3>
+                <p>Kasarani, Nairobi</p>
+                <h4>Ksh 45,000 / month</h4>
+                <a href="property.html">View Details</a>
+            </div>
+        </div>
 
-<div class="property-grid">
+        <div class="property-card">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c" alt="Apartment">
+            <div class="property-info">
+                <h3>Luxury Apartment</h3>
+                <p>Kilimani, Nairobi</p>
+                <h4>Ksh 75,000 / month</h4>
+                <a href="property.html">View Details</a>
+            </div>
+        </div>
 
-<div class="card">
-<img src="https://picsum.photos/400/250?1">
-<h3>2 Bedroom Apartment</h3>
-<p>Nairobi</p>
-<h4>KES 25,000 / Month</h4>
-<button>View Property</button>
-</div>
+        <div class="property-card">
+            <img src="https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6" alt="House">
+            <div class="property-info">
+                <h3>Spacious Bungalow</h3>
+                <p>Ruiru, Kiambu</p>
+                <h4>Ksh 35,000 / month</h4>
+                <a href="property.html">View Details</a>
+            </div>
+        </div>
+    </div>
+</section>
 
-<div class="card">
-<img src="https://picsum.photos/400/250?2">
-<h3>Bedsitter</h3>
-<p>Rongai</p>
-<h4>KES 8,500 / Month</h4>
-<button>View Property</button>
-</div>
-
-<div class="card">
-<img src="https://picsum.photos/400/250?3">
-<h3>Plot For Sale</h3>
-<p>Kitengela</p>
-<h4>KES 650,000</h4>
-<button>View Property</button>
-</div>
-
-</div>
-
+<section class="about">
+    <h2>Why Choose Qeja?</h2>
+    <p>
+        Qeja helps you discover available rentals, apartments, houses, plots and property listings in different locations.
+        Search easily, connect faster, and find a place that fits your lifestyle and budget.
+    </p>
 </section>
 
 <footer>
-<p>© 2026 Qeja.com</p>
+    <p>&copy; 2026 Qeja.com. All rights reserved.</p>
 </footer>
 
-<script src="app.js"></script>
-
+<script src="firebase.js"></script>
 </body>
 </html>
