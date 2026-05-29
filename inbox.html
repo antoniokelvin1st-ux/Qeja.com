@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inbox - Qeja</title>
+<link rel="stylesheet" href="style.css">
+
+<style>
+body{padding-bottom:80px;background:#f4f4f4;}
+.top-appbar{background:#111;color:white;padding:18px 7%;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+.inbox-wrap{padding:30px 7%;max-width:900px;margin:auto;}
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0;}
+.tab-btn{border:none;padding:10px 18px;border-radius:25px;background:#ddd;font-weight:bold;cursor:pointer;}
+.tab-btn.active{background:#ff7a18;color:white;}
+.inbox-card{background:white;border-radius:18px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.08);margin-bottom:15px;}
+.badge{background:#ff7a18;color:white;padding:3px 9px;border-radius:20px;font-size:12px;}
+.small-btn{border:none;padding:8px 14px;border-radius:20px;cursor:pointer;font-weight:bold;margin-top:10px;}
+.orange-btn{background:#ff7a18;color:white;}
+.dark-btn{background:#111;color:white;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;height:70px;display:flex;justify-content:space-around;align-items:center;z-index:200;}
+.bottom-nav a{text-decoration:none;color:#555;font-size:13px;font-weight:bold;text-align:center;}
+.bottom-nav span{display:block;font-size:23px;}
+.post-plus{background:#111;color:white!important;width:58px;height:58px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin-top:-28px;border:4px solid #ff7a18;}
+.post-plus span{font-size:34px;}
+</style>
+</head>
+
+<body>
+
+<header class="top-appbar">
+    <div class="logo">QEJA</div>
+    <a href="settings.html" style="color:white;text-decoration:none;font-weight:bold;">⚙ Settings</a>
+</header>
+
+<main class="inbox-wrap">
+    <h1>Inbox</h1>
+    <p>Track inquiries, leads, comments, likes, and property engagement.</p>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('inquiries')">Inquiries <span id="inquiryCount" class="badge">0</span></button>
+        <button class="tab-btn" onclick="showTab('notifications')">Notifications</button>
+        <button class="tab-btn" onclick="showTab('leads')">Leads</button>
+        <button class="tab-btn" onclick="showTab('conversations')">Conversations</button>
+    </div>
+
+    <section id="inquiriesTab">
+        <h2>Property Inquiries</h2>
+        <div id="inquiriesContainer">Loading inquiries...</div>
+    </section>
+
+    <section id="notificationsTab" style="display:none;">
+        <h2>Notifications</h2>
+        <div id="notificationsContainer">Loading notifications...</div>
+    </section>
+
+    <section id="leadsTab" style="display:none;">
+        <h2>Leads</h2>
+        <div id="leadsContainer">Loading leads...</div>
+    </section>
+
+    <section id="conversationsTab" style="display:none;">
+        <h2>Conversations</h2>
+        <div class="inbox-card">
+            <h3>Direct Chat</h3>
+            <p>Property-based chat will be added after inquiries are fully working.</p>
+        </div>
+    </section>
+</main>
+
+<nav class="bottom-nav">
+    <a href="index.html"><span>🏠</span>Home</a>
+    <a href="explore.html"><span>🔍</span>Explore</a>
+    <a href="post.html" class="post-plus"><span>+</span></a>
+    <a href="messages.html"><span>💬</span>Inbox</a>
+    <a href="profile.html"><span>👤</span>Profile</a>
+</nav>
+
+<script type="module">
+import { auth, database } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+
+let currentUser = null;
+let userPosts = [];
+
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    currentUser = user;
+    await loadUserPosts();
+    loadInquiries();
+    loadNotifications();
+    loadLeads();
+});
+
+window.showTab = function(tab) {
+    document.getElementById("inquiriesTab").style.display = "none";
+    document.getElementById("notificationsTab").style.display = "none";
+    document.getElementById("leadsTab").style.display = "none";
+    document.getElementById("conversationsTab").style.display = "none";
+
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+
+    if (tab === "inquiries") {
+        document.getElementById("inquiriesTab").style.display = "block";
+        document.querySelectorAll(".tab-btn")[0].classList.add("active");
+    }
+
+    if (tab === "notifications") {
+        document.getElementById("notificationsTab").style.display = "block";
+        document.querySelectorAll(".tab-btn")[1].classList.add("active");
+    }
+
+    if (tab === "leads") {
+        document.getElementById("leadsTab").style.display = "block";
+        document.querySelectorAll(".tab-btn")[2].classList.add("active");
+    }
+
+    if (tab === "conversations") {
+        document.getElementById("conversationsTab").style.display = "block";
+        document.querySelectorAll(".tab-btn")[3].classList.add("active");
+    }
+};
+
+async function loadUserPosts() {
+    const postsSnap = await get(ref(database, "posts"));
+    userPosts = [];
+
+    if (postsSnap.exists()) {
+        postsSnap.forEach(child => {
+            const post = child.val();
+            if (post.ownerId === currentUser.uid) {
+                userPosts.push(post);
+            }
+        });
+    }
+}
+
+function loadInquiries() {
+    const container = document.getElementById("inquiriesContainer");
+
+    onValue(ref(database, "leads/" + currentUser.uid), async (snapshot) => {
+        container.innerHTML = "";
+        let count = 0;
+
+        if (!snapshot.exists()) {
+            container.innerHTML = "<div class='inbox-card'><p>No inquiries yet.</p></div>";
+            document.getElementById("inquiryCount").textContent = "0";
+            return;
+        }
+
+        const leads = [];
+        snapshot.forEach(child => leads.push(child.val()));
+        leads.reverse();
+
+        for (const lead of leads) {
+            count++;
+
+            let postTitle = "Property";
+            const postSnap = await get(ref(database, "posts/" + lead.postId));
+            if (postSnap.exists()) {
+                postTitle = postSnap.val().title || "Property";
+            }
+
+            const card = document.createElement("div");
+            card.className = "inbox-card";
+
+            card.innerHTML = `
+                <h3>New Inquiry</h3>
+                <p><strong>${lead.interestedUserName}</strong> is interested in your listing:</p>
+                <p><strong>${postTitle}</strong></p>
+                <p>Email: ${lead.interestedUserEmail}</p>
+                <small>Status: ${lead.status || "new"}</small><br>
+                <button class="small-btn orange-btn" onclick="markLeadRead('${lead.leadId}')">Mark as Read</button>
+                <button class="small-btn dark-btn" onclick="replyByEmail('${lead.interestedUserEmail}')">Reply by Email</button>
+            `;
+
+            container.appendChild(card);
+        }
+
+        document.getElementById("inquiryCount").textContent = count;
+    });
+}
+
+function loadNotifications() {
+    const container = document.getElementById("notificationsContainer");
+    container.innerHTML = "";
+
+    if (userPosts.length === 0) {
+        container.innerHTML = "<div class='inbox-card'><p>No notifications yet.</p></div>";
+        return;
+    }
+
+    userPosts.forEach(post => {
+        const card = document.createElement("div");
+        card.className = "inbox-card";
+
+        card.innerHTML = `
+            <h3>${post.title || "Property"}</h3>
+            <p>Views: ${post.views || 0}</p>
+            <p>Likes: ${post.likesCount || post.likes || 0}</p>
+            <p>Comments and replies are available on the Home feed.</p>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+function loadLeads() {
+    const container = document.getElementById("leadsContainer");
+    container.innerHTML = "";
+
+    if (userPosts.length === 0) {
+        container.innerHTML = "<div class='inbox-card'><p>No posted properties yet.</p></div>";
+        return;
+    }
+
+    userPosts.forEach(post => {
+        const card = document.createElement("div");
+        card.className = "inbox-card";
+
+        card.innerHTML = `
+            <h3>${post.title || "Property"}</h3>
+            <p><strong>Location:</strong> ${post.location || "Not added"}</p>
+            <p><strong>Price:</strong> ${post.price || "Not added"}</p>
+            <p><strong>Engagement:</strong> ${(post.likesCount || post.likes || 0)} likes, ${post.views || 0} views</p>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+window.markLeadRead = async function(leadId) {
+    await update(ref(database, "leads/" + currentUser.uid + "/" + leadId), {
+        status: "read"
+    });
+
+    alert("Inquiry marked as read");
+};
+
+window.replyByEmail = function(email) {
+    window.location.href = "mailto:" + email;
+};
+</script>
+
+</body>
+</html>
