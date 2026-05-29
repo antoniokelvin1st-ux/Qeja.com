@@ -52,7 +52,7 @@ body{padding-bottom:80px;background:#f4f4f4;}
 <script type="module">
 import { auth, database } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { ref, get, push, set, update } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+import { ref, get, push, set, update, remove } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
 
 let currentUser = null;
 let currentUserData = null;
@@ -146,7 +146,8 @@ async function loadDetails() {
                     <a class="orange" href="${phone ? "tel:+" + phone : "#"}">Call</a>
                     <a class="blue" href="${email ? "mailto:" + email : "#"}">Email</a>
                     <a class="dark" href="${mapsLink}" target="_blank">Open Location</a>
-                    <button class="orange" onclick="sendInquiry('${post.postId}', '${post.ownerId}')">Send Inquiry</button>
+                    <button class="dark" onclick="toggleSaveProperty('${post.postId}')">Save Property</button>
+<button class="orange" onclick="sendInquiry('${post.postId}', '${post.ownerId}')">Send Inquiry</button>
                 </div>
 
                 <div class="owner-box">
@@ -187,6 +188,28 @@ window.sendInquiry = async function(postId, ownerId) {
     }
 
     alert("Inquiry sent successfully.");
+};
+    window.toggleSaveProperty = async function(postId) {
+
+    const saveRef = ref(database, `savedProperties/${currentUser.uid}/${postId}`);
+    const snap = await get(saveRef);
+
+    if(snap.exists()){
+
+        await remove(saveRef);
+        alert("Property removed from saved.");
+
+    } else {
+
+        const postSnap = await get(ref(database, "posts/" + postId));
+
+        if(postSnap.exists()){
+
+            await set(saveRef, postSnap.val());
+            alert("Property saved successfully.");
+
+        }
+    }
 };
 </script>
 
