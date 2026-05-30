@@ -39,10 +39,6 @@ body{padding-bottom:80px;background:#f4f4f4;}
         <h1>Create Listing</h1>
         <p>Post a rental, apartment, house, plot, hostel, Airbnb, or property reel.</p>
 
-        <div class="note">
-            For now, use image/video links. Direct gallery uploads will be added when Firebase Storage is available.
-        </div>
-
         <input id="postTitle" type="text" placeholder="Property title e.g Modern bedsitter near KU">
 
         <div class="row">
@@ -72,12 +68,8 @@ body{padding-bottom:80px;background:#f4f4f4;}
 
         <div class="fgroup">
         <label>Product Photos *</label>
-        <div class="drop-zone" id="drop-zone">
-          <input type="file" id="img-input" accept="image/*" multiple onchange="handleFiles(this.files)"/>
-        </div>
-        <div class="preview-grid" id="preview-grid"></div>
-      </div>
-        <input id="postVideo" type="text" placeholder="Video/Reel URL optional">
+       <input id="postImage" type="text" placeholder="Main image URL">
+       <input id="postVideo" type="text" placeholder="Video/Reel URL optional">
 
         <textarea id="postDescription" placeholder="Describe the property, rooms, security, water, nearby roads, rules, etc."></textarea>
 
