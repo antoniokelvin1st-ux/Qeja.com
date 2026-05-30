@@ -1,32 +1,35 @@
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-export const storage = getStorage(app);
-
-<!-- Firebase Auth + Firestore (compat — free tier) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-<script>
-/* ── CONFIG ─────────────────────────────────────────────── */
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyDp33VJKZSPDYwU5OY_Nzq-fnAck50-bDA",
-  authDomain: "qeja-com.firebaseapp.com",
-  projectId: "qeja-com",
-  storageBucket: "qeja-com.firebasestorage.app",
-  messagingSenderId: "219739142262",
-  appId: "1:219739142262:web:52efbfb97bb07c32a94757"
+const firebaseConfig = {
+    apiKey: "AIzaSyDp33VJKZSPDYwU5OY_Nzq-fnAck50-bDA",
+    authDomain: "qeja-com.firebaseapp.com",
+    databaseURL: "https://qeja-com-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "qeja-com",
+    storageBucket: "qeja-com.firebasestorage.app",
+    messagingSenderId: "219739142262",
+    appId: "1:219739142262:web:52efbfb97bb07c32a94757"
 };
 
-// Cloudinary — free image hosting (no paid plan needed)
-const CLOUDINARY_CLOUD  = 'dbyeox0j8';
-const CLOUDINARY_PRESET = 'Qeja-com';
-const CLOUDINARY_URL    = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`;
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const database = getDatabase(app);
 
-/* ── INIT ───────────────────────────────────────────────── */
-firebase.initializeApp(FIREBASE_CONFIG);
-const auth = firebase.auth();
-const db   = firebase.firestore();
+// ── Cloudinary Config ────────────────────────────────────────
+export const CLOUDINARY_CLOUD  = "dbyeox0j8";
+export const CLOUDINARY_PRESET = "Qeja-com";
 
-let selectedFiles = [];
-let delTargetId   = null;Put images, icons and logos here.
+export async function uploadToCloudinary(file, resourceType = "image") {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_PRESET);
+
+    const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`,
+        { method: "POST", body: formData }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || "Cloudinary upload failed");
+    return data.secure_url;
+}
