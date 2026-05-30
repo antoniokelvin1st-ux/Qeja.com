@@ -1,5 +1,4 @@
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js";
 export const storage = getStorage(app);
 
 <!-- Firebase Auth + Firestore (compat — free tier) -->
@@ -12,7 +11,6 @@ export const storage = getStorage(app);
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDp33VJKZSPDYwU5OY_Nzq-fnAck50-bDA",
   authDomain: "qeja-com.firebaseapp.com",
-  databaseURL: "https://qeja-com-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "qeja-com",
   storageBucket: "qeja-com.firebasestorage.app",
   messagingSenderId: "219739142262",
