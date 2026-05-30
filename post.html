@@ -12,12 +12,16 @@ body{padding-bottom:80px;background:#f4f4f4;}
 .logo{font-size:30px;font-weight:900;color:#ff7a18;}
 .post-wrap{padding:30px 7% 100px;max-width:800px;margin:auto;}
 .post-card{background:white;border-radius:22px;padding:22px;box-shadow:0 8px 20px rgba(0,0,0,.08);}
-.post-card input,.post-card select,.post-card textarea{width:100%;padding:14px;margin:8px 0;border-radius:10px;border:1px solid #ddd;}
+.post-card input,.post-card select,.post-card textarea{width:100%;padding:14px;margin:8px 0;border-radius:10px;border:1px solid #ddd;box-sizing:border-box;}
 .post-card textarea{height:120px;}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fgroup{margin:12px 0;}
+.fgroup label{font-weight:bold;display:block;margin-bottom:5px;}
+.drop-zone{border:2px dashed #ff7a18;background:#fff7f0;padding:20px;border-radius:15px;text-align:center;cursor:pointer;}
+.preview-box{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+.preview-box img{width:90px;height:90px;object-fit:cover;border-radius:10px;}
 .publish-btn{width:100%;background:#ff7a18;color:white;border:none;padding:15px;border-radius:30px;font-weight:bold;cursor:pointer;margin-top:15px;}
 .cancel-link{color:white;text-decoration:none;font-weight:bold;}
-.note{background:#fff3e8;padding:12px;border-radius:12px;margin:12px 0;color:#8a3f00;}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;height:70px;display:flex;justify-content:space-around;align-items:center;z-index:200;}
 .bottom-nav a{text-decoration:none;color:#555;font-size:13px;font-weight:bold;text-align:center;}
 .bottom-nav span{display:block;font-size:23px;}
@@ -67,14 +71,18 @@ body{padding-bottom:80px;background:#f4f4f4;}
         </div>
 
         <div class="fgroup">
-        <label>Product Photos *</label>
-        <label>Property Photo *</label>
-<input id="postImageFile" type="file" accept="image/*">
-<img id="imagePreview" style="display:none;width:100%;max-height:200px;object-fit:cover;border-radius:10px;margin-top:8px;">
+            <label>Property Photos *</label>
+            <div class="drop-zone">
+                <input id="postImages" type="file" accept="image/*" multiple>
+                <p>Select property photos from gallery/files</p>
+            </div>
+            <div id="imagePreview" class="preview-box"></div>
+        </div>
 
-<label>Property Video / Reel (optional)</label>
-<input id="postVideoFile" type="file" accept="video/*">
-<video id="videoPreview" style="display:none;width:100%;border-radius:10px;margin-top:8px;" controls></video>
+        <div class="fgroup">
+            <label>Property Video / Reel Optional</label>
+            <input id="postVideoFile" type="file" accept="video/*">
+        </div>
 
         <textarea id="postDescription" placeholder="Describe the property, rooms, security, water, nearby roads, rules, etc."></textarea>
 
@@ -95,7 +103,7 @@ body{padding-bottom:80px;background:#f4f4f4;}
             <option value="draft">Save as Draft</option>
         </select>
 
-        <button id="publishBtn" class="publish-btn">Publish Listing</button>
+        <button id="publishBtn" class="publish-btn" type="button">Publish Listing</button>
     </div>
 </main>
 
@@ -108,31 +116,15 @@ body{padding-bottom:80px;background:#f4f4f4;}
 </nav>
 
 <script type="module">
-import { auth, database, storage } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { ref, push, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import { auth, database } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { ref, push, set, get } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js";
+
+const CLOUD_NAME = "dbyeox0j8";
+const UPLOAD_PRESET = "Qeja-com";
 
 let currentUser = null;
 let currentUserData = null;
-
-// Preview image when chosen
-document.getElementById("postImageFile").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const preview = document.getElementById("imagePreview");
-    preview.src = URL.createObjectURL(file);
-    preview.style.display = "block";
-});
-
-// Preview video when chosen
-document.getElementById("postVideoFile").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const preview = document.getElementById("videoPreview");
-    preview.src = URL.createObjectURL(file);
-    preview.style.display = "block";
-});
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -153,14 +145,47 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("contactPhone").value = currentUserData.phone || "";
 });
 
+document.getElementById("postImages").addEventListener("change", function(){
+    const preview = document.getElementById("imagePreview");
+    preview.innerHTML = "";
+
+    Array.from(this.files).forEach(file => {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        preview.appendChild(img);
+    });
+});
+
+async function uploadToCloudinary(file, resourceType = "image") {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error?.message || "Cloudinary upload failed");
+    }
+
+    return data.secure_url;
+}
+
 document.getElementById("publishBtn").addEventListener("click", async () => {
+    if (!currentUser) {
+        alert("Please wait, account is still loading.");
+        return;
+    }
+
     const title = document.getElementById("postTitle").value.trim();
     const category = document.getElementById("postCategory").value;
     const type = document.getElementById("postType").value;
     const location = document.getElementById("postLocation").value.trim();
     const price = document.getElementById("postPrice").value.trim();
-    const imageFile = document.getElementById("postImageFile").files[0];
-    const videoFile = document.getElementById("postVideoFile").files[0];
     const description = document.getElementById("postDescription").value.trim();
     const contactName = document.getElementById("contactName").value.trim();
     const contactPhone = document.getElementById("contactPhone").value.trim();
@@ -168,34 +193,40 @@ document.getElementById("publishBtn").addEventListener("click", async () => {
     const contactEmail = document.getElementById("contactEmail").value.trim();
     const visibility = document.getElementById("visibility").value;
 
-    if (!title || !category || !location || !price || !imageFile || !description || !contactPhone) {
-        alert("Please fill title, category, location, price, image, description and phone number.");
+    const imageFiles = document.getElementById("postImages").files;
+    const videoFile = document.getElementById("postVideoFile").files[0];
+
+    if (!title || !category || !location || !price || !description || !contactPhone || imageFiles.length === 0) {
+        alert("Please fill title, category, location, price, photos, description and phone number.");
         return;
     }
 
     const publishBtn = document.getElementById("publishBtn");
-    publishBtn.textContent = "Uploading...";
-    publishBtn.disabled = true;
 
     try {
-        const postRef = push(ref(database, "posts"));
-        const postId = postRef.key;
+        publishBtn.disabled = true;
+        publishBtn.textContent = "Uploading photos...";
 
-        // Upload image
-        const imgRef = storageRef(storage, `posts/${postId}/image`);
-        await uploadBytes(imgRef, imageFile);
-        const imageURL = await getDownloadURL(imgRef);
+        const imageURLs = [];
 
-        // Upload video if provided
-        let videoURL = "";
-        if (videoFile) {
-            const vidRef = storageRef(storage, `posts/${postId}/video`);
-            await uploadBytes(vidRef, videoFile);
-            videoURL = await getDownloadURL(vidRef);
+        for (let i = 0; i < imageFiles.length; i++) {
+            const url = await uploadToCloudinary(imageFiles[i], "image");
+            imageURLs.push(url);
         }
 
+        let videoURL = "";
+
+        if (videoFile) {
+            publishBtn.textContent = "Uploading video...";
+            videoURL = await uploadToCloudinary(videoFile, "video");
+        }
+
+        publishBtn.textContent = "Publishing...";
+
+        const postRef = push(ref(database, "posts"));
+
         await set(postRef, {
-            postId,
+            postId: postRef.key,
             ownerId: currentUser.uid,
             ownerName: currentUserData.fullName || "Qeja User",
             ownerEmail: currentUser.email,
@@ -205,7 +236,8 @@ document.getElementById("publishBtn").addEventListener("click", async () => {
             type,
             location,
             price,
-            imageURL,
+            imageURL: imageURLs[0],
+            imageURLs,
             videoURL,
             description,
             contactName,
@@ -222,14 +254,14 @@ document.getElementById("publishBtn").addEventListener("click", async () => {
             createdAt: new Date().toISOString()
         });
 
-        alert(visibility === "draft" ? "Draft saved!" : "Listing published!");
+        alert(visibility === "draft" ? "Draft saved successfully!" : "Listing published successfully!");
         window.location.href = "profile.html";
 
-    } catch (err) {
-        console.error(err);
-        alert("Upload failed: " + err.message);
-        publishBtn.textContent = "Publish Listing";
+    } catch (error) {
+        console.error(error);
+        alert("Failed to publish: " + error.message);
         publishBtn.disabled = false;
+        publishBtn.textContent = "Publish Listing";
     }
 });
 </script>
