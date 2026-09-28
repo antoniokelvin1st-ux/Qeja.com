@@ -1,29 +1,80 @@
-const defaultProducts=[
- {id:'pallet-bed',name:'The Pallet Bed',price:24500,category:'pallet',tag:'Best loved',image:'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=700&q=85'},
- {id:'pallet-sofa',name:'The Pallet Sofa',price:38500,category:'pallet',tag:'Made to order',image:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=700&q=85'},
- {id:'easy-chair',name:'The Easy Chair',price:18900,category:'seating',tag:'',image:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=700&q=85'},
- {id:'dining-bench',name:'The Gathering Bench',price:16500,category:'seating',tag:'',image:'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=700&q=85'},
- {id:'media-console',name:'The Media Console',price:29750,category:'storage',tag:'New',image:'https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=700&q=85'},
- {id:'side-table',name:'The Everyday Table',price:9500,category:'pallet',tag:'',image:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=700&q=85'}
-];
-let products=JSON.parse(localStorage.getItem('qeja-products')||'null')||defaultProducts;
-const defaultInspiration=[{title:'Warm minimalism',image:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=85'},{title:'Small-space dining',image:'https://images.unsplash.com/photo-1617806118233-18e1de247200?auto=format&fit=crop&w=900&q=85'},{title:'Rest, unhurried',image:'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=85'}];
-let inspiration=JSON.parse(localStorage.getItem('qeja-inspiration')||'null')||defaultInspiration;
-let currency='KSh', rate=130, cart=[];
-const money=n=>currency==='USD'?`$${(n/rate).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`:`KSh ${Math.round(n).toLocaleString('en-KE')}`;
-const grid=document.querySelector('#productGrid');
-function renderProducts(filter='all'){grid.innerHTML=products.filter(p=>filter==='all'||p.category===filter).map(p=>`<article class="product-card"><div class="product-image" style="background-image:url('${p.image}')">${p.tag?`<span class="tag">${p.tag}</span>`:''}<button onclick="addToCart('${p.id}')" aria-label="Add ${p.name} to bag">+</button></div><h3>${p.name}</h3><p>${money(p.price)}</p></article>`).join('')}
-function renderInspiration(){document.querySelector('#inspoGrid').innerHTML=inspiration.map((x,i)=>`<article class="inspo-card ${['one','two','three'][i%3]}" style="background-image:url('${x.image}')"><span>${x.title}</span></article>`).join('')}
-function renderCalculator(){const select=document.querySelector('#calcProduct');select.innerHTML=products.map(p=>`<option value="${p.id}">${p.name} — ${money(p.price)}</option>`).join('');updateEstimate()}
-function updateEstimate(){const p=products.find(x=>x.id===document.querySelector('#calcProduct').value)||products[0];const q=Math.max(1,+document.querySelector('#quantity').value||1), d=+document.querySelector('#delivery').value;document.querySelector('#estimateTotal').textContent=money(p.price*q+d);document.querySelector('#estimateDetails').textContent=d?`Includes ${money(d)} delivery`:'Pick-up included'}
-function addToCart(id){const p=products.find(x=>x.id===id),existing=cart.find(x=>x.id===id);if(existing)existing.qty++;else cart.push({...p,qty:1});renderCart();openCart()}
-function renderCart(){const count=cart.reduce((s,p)=>s+p.qty,0),total=cart.reduce((s,p)=>s+p.price*p.qty,0);document.querySelector('#cartCount').textContent=count;document.querySelector('#cartCountWide').textContent=count;document.querySelector('#cartSubtotal').textContent=money(total);document.querySelector('#cartItems').innerHTML=cart.length?cart.map(p=>`<div class="cart-item"><img src="${p.image}" alt=""><div><b>${p.name} × ${p.qty}</b><small>${money(p.price*p.qty)}</small><button onclick="removeCart('${p.id}')">Remove</button></div></div>`).join(''):'<p class="empty">Your bag is waiting for something good.</p>'}
-function removeCart(id){cart=cart.filter(x=>x.id!==id);renderCart()}
-function openCart(){document.querySelector('#cart').classList.add('open');document.querySelector('#overlay').classList.add('open')}
-function sendInquiry(){if(!cart.length)return;const lines=cart.map(p=>`• ${p.name} × ${p.qty} — KSh ${(p.price*p.qty).toLocaleString('en-KE')}`).join('\n');const total=cart.reduce((s,p)=>s+p.price*p.qty,0),ref=`QJ-${Math.floor(10000+Math.random()*89999)}`,orders=JSON.parse(localStorage.getItem('qeja-orders')||'[]');orders.unshift({ref,status:'Inquiry received',items:cart,total,created:new Date().toISOString()});localStorage.setItem('qeja-orders',JSON.stringify(orders));const message=`Hello QEJA, I would like to inquire about this order. My reference is ${ref}.\n\n${lines}\n\nEstimated furniture total: KSh ${total.toLocaleString('en-KE')}\n\nPlease advise on availability, delivery, and payment. Thank you.`;window.open(`https://wa.me/254795165085?text=${encodeURIComponent(message)}`,'_blank','noopener');}
-function setupSupport(){document.head.insertAdjacentHTML('beforeend','<style>.quick-actions{position:fixed;right:20px;bottom:20px;z-index:8;display:grid;gap:9px}.quick-actions button,.quick-actions a{border:0;text-decoration:none;background:#27291f;color:#fff;padding:13px 16px;font:700 12px Manrope;border-radius:30px;box-shadow:0 8px 22px #0003}.quick-actions a{background:#1f9d55}.support-widget{position:fixed;z-index:11;right:20px;bottom:125px;width:min(370px,calc(100vw - 32px));background:#fbfaf7;box-shadow:0 20px 55px #0004;padding:21px;display:none}.support-widget.open{display:block}.support-widget h3{font:600 28px Playfair Display;margin:0}.support-widget p{font-size:12px;line-height:1.5}.support-widget input,.support-widget textarea{width:100%;padding:10px;border:1px solid #d7d1c5;margin:6px 0;font:12px Manrope}.support-reply{background:#f4f0e7;padding:10px;font-size:12px;line-height:1.5;margin:8px 0}.support-widget .tabs{display:flex;gap:12px;margin:15px 0}.support-widget .tabs button{border:0;background:transparent;padding:0;font:700 12px Manrope;text-decoration:underline}</style>');document.body.insertAdjacentHTML('beforeend','<aside class="support-widget" id="supportWidget"><button class="close" id="supportClose">×</button><h3>QEJA support.</h3><p>Ask a quick question, track an inquiry, or send the team a message.</p><div class="tabs"><button data-help="ask">Quick help</button><button data-help="ticket">Support ticket</button><button data-help="track">Track order</button></div><div id="helpArea"></div></aside><div class="quick-actions"><a href="https://wa.me/254795165085" target="_blank" rel="noopener">WhatsApp QEJA</a><button id="supportOpen">Help & track order</button></div>');const w=document.querySelector('#supportWidget'),area=document.querySelector('#helpArea');const open=()=>{w.classList.add('open');show('ask')};const show=type=>{if(type==='ask')area.innerHTML='<input id="quickQuestion" placeholder="Ask about delivery, custom designs or furniture..."><button class="button dark" id="askButton">Ask QEJA</button><div id="quickReply"></div>';if(type==='ticket')area.innerHTML='<input id="ticketName" placeholder="Your name"><input id="ticketContact" placeholder="Phone or email"><textarea id="ticketMessage" placeholder="How can our support team help?"></textarea><button class="button dark" id="ticketButton">Send ticket</button><div id="ticketReply"></div>';if(type==='track')area.innerHTML='<input id="trackRef" placeholder="Order reference, e.g. QJ-48291"><button class="button dark" id="trackButton">Track my order</button><div id="trackReply"></div>';if(type==='ask')document.querySelector('#askButton').onclick=()=>{const q=document.querySelector('#quickQuestion').value.toLowerCase();let a='A QEJA team member can help with that. Send a support ticket and we will reply.';if(q.includes('delivery'))a='Delivery is confirmed with you after we review your location and order. Nairobi and outside-Nairobi options are included in your estimate.';if(q.includes('custom')||q.includes('design'))a='Yes—QEJA creates custom furniture, room arrangements, and interiors. Send us your space, style, and budget through a support ticket or WhatsApp.';if(q.includes('payment'))a='We do not accept public payments online. Our team confirms availability and payment details privately after your inquiry.';document.querySelector('#quickReply').innerHTML=`<div class="support-reply">${a}</div>`};if(type==='ticket')document.querySelector('#ticketButton').onclick=()=>{const m=document.querySelector('#ticketMessage').value;if(!m)return;const tickets=JSON.parse(localStorage.getItem('qeja-tickets')||'[]');tickets.unshift({id:`TK-${Date.now()}`,name:document.querySelector('#ticketName').value,contact:document.querySelector('#ticketContact').value,message:m,status:'Open'});localStorage.setItem('qeja-tickets',JSON.stringify(tickets));document.querySelector('#ticketReply').innerHTML='<div class="support-reply">Your ticket is open. QEJA support will reply using your contact details.</div>'};if(type==='track')document.querySelector('#trackButton').onclick=()=>{const x=JSON.parse(localStorage.getItem('qeja-orders')||'[]').find(o=>o.ref===document.querySelector('#trackRef').value.trim().toUpperCase());document.querySelector('#trackReply').innerHTML=`<div class="support-reply">${x?`Status: <b>${x.status}</b>. We will contact you when the next step is ready.`:'We could not find that reference. Please check the code or contact QEJA on WhatsApp.'}</div>`}};document.querySelector('#supportOpen').onclick=open;document.querySelector('#supportClose').onclick=()=>w.classList.remove('open');document.querySelectorAll('[data-help]').forEach(b=>b.onclick=()=>show(b.dataset.help))}
-function closeAll(){document.querySelector('#cart').classList.remove('open');document.querySelector('#overlay').classList.remove('open')}
-function showModal(type){const modal=document.querySelector('#modal');const track=type==='track';document.querySelector('#modalContent').innerHTML=track?`<form class="modal-form" id="trackForm"><h2>Find your order.</h2><p>Enter the order reference from your confirmation message.</p><label>Order reference<input required placeholder="Example: QJ-48291"></label><button class="button dark">Track order <span>→</span></button></form>`:`<form class="modal-form" id="ticketForm"><h2>How can we help?</h2><p>Tell us about your order or your space. We’ll get back to you shortly.</p><label>Your name<input required placeholder="Your name"></label><label>Email or phone<input required placeholder="you@example.com / 07..."></label><label>Order reference (if you have one)<input placeholder="QJ-48291"></label><label>Message<textarea required placeholder="Describe what you need help with"></textarea></label><button class="button dark">Send request <span>→</span></button></form>`;modal.showModal();const form=document.querySelector(track?'#trackForm':'#ticketForm');form.onsubmit=e=>{e.preventDefault();document.querySelector('#modalContent').innerHTML=track?`<div class="success"><p class="eyebrow">Order update</p><h2>We found it.</h2><p>Your order is being prepared. A QEJA team member will confirm the delivery date directly.</p><span class="reference">QJ-48291</span></div>`:`<div class="success"><p class="eyebrow">Request received</p><h2>Thank you.</h2><p>Your support request is in. We’ll reply using the contact details you provided.</p></div>`}}
-document.querySelectorAll('.filter').forEach(b=>b.onclick=()=>{document.querySelector('.filter.active').classList.remove('active');b.classList.add('active');renderProducts(b.dataset.filter)});
-document.querySelector('#currencyToggle').onclick=()=>{currency=currency==='KSh'?'USD':'KSh';document.querySelector('#currencyToggle').innerHTML=`${currency} <small>⌄</small>`;renderProducts(document.querySelector('.filter.active').dataset.filter);renderCalculator();renderCart()};
-document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{if(b.dataset.close==='modal')document.querySelector('#modal').close();else closeAll()});document.querySelector('#overlay').onclick=closeAll;document.querySelector('#bagButton').onclick=openCart;document.querySelectorAll('[data-modal]').forEach(b=>b.onclick=()=>showModal(b.dataset.modal));document.querySelector('#calcProduct').onchange=updateEstimate;document.querySelector('#quantity').oninput=updateEstimate;document.querySelector('#delivery').onchange=updateEstimate;document.querySelector('#addEstimate').onclick=()=>addToCart(document.querySelector('#calcProduct').value);document.querySelector('#checkout').onclick=sendInquiry;document.querySelector('#year').textContent=new Date().getFullYear();const social=JSON.parse(localStorage.getItem('qeja-socials')||'{}');document.querySelector('#socialLinks').innerHTML=Object.entries(social).filter(([,url])=>url).map(([name,url])=>`<a href="${url}" target="_blank" rel="noopener">${name}</a>`).join('');setupSupport();renderProducts();renderInspiration();renderCalculator();renderCart();
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="QEJA Kenya: affordable pallet furniture, custom interiors and room planning." />
+  <title>QEJA | Not Your Ordinary Carpenter</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+  <div class="announcement">QEJA Furniture · Kenya <span>Not Your Ordinary Carpenter</span></div>
+  <header>
+    <a class="brand" href="#home" aria-label="QEJA home">QEJA<span>.</span></a>
+    <nav aria-label="Main navigation">
+      <a href="#shop">Shop</a><a href="#custom">Custom interiors</a><a href="#inspo">Inspiration</a><a href="#support">Support</a>
+    </nav>
+    <div class="header-actions">
+      <button class="currency-toggle" id="currencyToggle" aria-label="Change currency">KSh <small>⌄</small></button>
+      <button class="bag-btn" id="bagButton" aria-label="Open cart">Bag <b id="cartCount">0</b></button>
+      <button class="menu-btn" id="menuButton" aria-label="Open navigation">☰</button>
+    </div>
+  </header>
+
+  <main id="home">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Pallet furniture · Custom interiors</p>
+        <h1>Not your ordinary <em>carpenter.</em></h1>
+        <p class="hero-text">Furniture, interiors, and room arrangements made for your space.</p>
+        <div class="hero-cta"><a class="button dark" href="#shop">Shop pieces <span>↗</span></a><a class="text-link" href="#custom">Plan my space <span>→</span></a></div>
+      </div>
+      <div class="hero-image"><div class="image-note">01 / 05<br><strong>Easy, grounded living</strong></div></div>
+    </section>
+
+    <section class="trust-strip" aria-label="QEJA benefits"><div><b>Made for Kenya</b><span>Locally sourced & built</span></div><div><b>Built around you</b><span>Custom sizes & finishes</span></div><div><b>Clear pricing</b><span>Calculate before you order</span></div><div><b>Guest checkout</b><span>No account needed</span></div></section>
+
+    <section class="section products" id="shop">
+      <div class="section-heading"><div><p class="eyebrow">The everyday collection</p><h2>Furniture with a <em>good foundation.</em></h2></div><a class="text-link" href="#calculator">Price my project <span>→</span></a></div>
+      <div class="filters"><button class="filter active" data-filter="all">All pieces</button><button class="filter" data-filter="qeja">QEJA Designs</button><button class="filter" data-filter="pallet">Pallet collection</button><button class="filter" data-filter="seating">Seating</button><button class="filter" data-filter="storage">Storage</button></div>
+      <div class="product-grid" id="productGrid"></div>
+    </section>
+
+    <section class="custom-section" id="custom">
+      <div class="custom-photo"></div>
+      <div class="custom-copy"><p class="eyebrow">Custom interiors</p><h2>Built for your space.</h2><p>Custom furniture, room arrangement, and interior styling for homes and businesses.</p><ul><li>Space planning & room arrangement</li><li>Custom furniture design</li><li>Interior styling & finishes</li></ul><a class="button cream" href="#support">Start a custom project <span>↗</span></a></div>
+    </section>
+
+    <section class="section calculator-section" id="calculator">
+      <div class="calculator-intro"><p class="eyebrow">Price calculator</p><h2>Estimate your <em>order.</em></h2><p>Choose a piece, quantity, and delivery area. Final custom quotations are confirmed by QEJA.</p><div class="rate-note">Display rate: <b id="rateText">1 USD = KSh 130</b> · final payment is in KSh</div></div>
+      <form class="calculator" id="calculatorForm">
+        <label>Choose a piece<select id="calcProduct"></select></label>
+        <div class="two-col"><label>Quantity<input id="quantity" type="number" min="1" value="1"></label><label>Delivery area<select id="delivery"><option value="0">Pick up — Free</option><option value="1000">Nairobi — KSh 1,000</option><option value="3500">Outside Nairobi — KSh 3,500</option></select></label></div>
+        <div class="estimate"><span>Estimated total</span><strong id="estimateTotal">KSh 0</strong><small id="estimateDetails">Includes delivery</small></div>
+        <button class="button dark" type="button" id="addEstimate">Add to bag <span>+</span></button>
+      </form>
+    </section>
+
+    <section class="section inspiration" id="inspo"><div class="section-heading"><div><p class="eyebrow">QEJA spaces</p><h2>Furniture and <em>interiors.</em></h2></div><p class="inspo-text">Our work, ideas, and room inspiration.</p></div><div class="inspo-grid" id="inspoGrid"></div></section>
+
+    <section class="support-section" id="support"><div><p class="eyebrow">Support</p><h2>Need help?</h2><p>Track an order, ask a question, or send a custom request.</p></div><div class="support-actions"><button class="support-card" data-modal="track"><span>01</span><b>Track an order</b><small>Use your order reference</small><i>→</i></button><button class="support-card" data-modal="ticket"><span>02</span><b>Contact support</b><small>Send a support request</small><i>→</i></button></div></section>
+  </main>
+
+  <footer><a class="brand" href="#home">QEJA<span>.</span></a><p>Not your ordinary carpenter.</p><div><a href="#shop">Shop</a><a href="#custom">Custom interiors</a><a href="#support">Contact</a><a href="admin.html">Admin</a></div><div class="social-links" id="socialLinks"></div><small>© <span id="year"></span> QEJA Kenya.</small></footer>
+
+  <aside class="cart" id="cart" aria-label="Shopping bag"><div class="cart-head"><h2>Your bag <span id="cartCountWide">0</span></h2><button class="close" data-close="cart">×</button></div><div id="cartItems" class="cart-items"><p class="empty">Your bag is waiting for something good.</p></div><div class="cart-bottom"><div><span>Subtotal</span><strong id="cartSubtotal">KSh 0</strong></div><button class="button dark" id="checkout">Order as guest <span>→</span></button><small>You’ll receive an order reference to track your order.</small></div></aside>
+  <div class="overlay" id="overlay"></div>
+  <dialog id="modal"><button class="close modal-close" data-close="modal">×</button><div id="modalContent"></div></dialog>
+  <script src="app.js"></script>
+  <script>
+    document.querySelector('#menuButton').addEventListener('click', () => {
+      document.querySelector('nav').classList.toggle('open');
+    });
+  </script>
+</body>
+</html>
