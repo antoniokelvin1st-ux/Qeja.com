@@ -1,0 +1,22 @@
+:root {
+  --lime: #f5a13b;
+  --clay: #ee5c24;
+}
+
+.announcement { background: var(--clay); }
+.filter.active, .dark { background: var(--clay); border-color: var(--clay); }
+.quick-actions button { background: var(--clay) !important; }
+
+@media (max-width: 800px) {
+  nav.open {
+    display: flex;
+    position: absolute;
+    top: 82px;
+    left: 0;
+    right: 0;
+    padding: 22px 7vw;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    flex-direction: column;
+  }
+}
